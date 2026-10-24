@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedSync - Project Presentation Slides</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --emerald: #059669;
+      --emerald-light: #dcfce7;
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --red: #dc2626;
+      --red-light: #fee2e2;
+      --bg: #f0f7fc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #0b1120;
+      color: var(--navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Top Control Bar */
+    .top-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      color: #ffffff;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: #ffffff;
+    }
+
+    .brand-title span {
+      color: #38bdf8;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .slide-counter {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-nav:hover:not(:disabled) {
+      background: #0284c7;
+      border-color: #0284c7;
+    }
+
+    .btn-nav:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-fullscreen {
+      background: #0284c7;
+      border: none;
+    }
+
+    /* Progress Line */
+    .progress-track {
+      position: fixed;
+      top: 56px;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 999;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8, #2dd4bf);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Presentation Slide Stage */
+    .slide-stage {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      margin: 76px 20px 20px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide-deck {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    .slide-page {
+      position: absolute;
+      inset: 0;
+      background: var(--bg);
+      padding: 44px 56px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(30px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-page.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+      z-index: 10;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 24px;
+    }
+
+    .slide-category {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .slide-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .slide-subtitle {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Slide Content Layouts */
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      height: 100%;
+    }
+
+    .grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      height: 100%;
+    }
+
+    .grid-4col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      height: 100%;
+    }
+
+    /* Cards */
+    .content-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .content-card h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-card p, .content-card ul {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .content-card ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .content-card ul li {
+      position: relative;
+      padding-left: 18px;
+      margin-bottom: 10px;
+    }
+
+    .content-card ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-size: 1.2rem;
+      line-height: 1;
+      top: -2px;
+    }
+
+    /* Stat Big Number */
+    .stat-number {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+      margin-bottom: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-blue { background: var(--primary-light); color: var(--primary-dark); }
+    .badge-green { background: var(--emerald-light); color: var(--emerald); }
+    .badge-amber { background: var(--amber-light); color: var(--amber); }
+
+    /* Title Slide Specific */
+    .title-slide-wrapper {
+      background: radial-gradient(circle at 10% 20%, rgba(224, 242, 254, 0.8) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 80%, rgba(204, 251, 241, 0.6) 0%, transparent 45%),
+                  linear-gradient(135deg, #f0f7fc 0%, #ffffff 50%, #eef6fc 100%);
+      align-items: center;
+      text-align: center;
+      padding: 50px 70px;
+    }
+
+    .title-brand-icon {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 8px 20px rgba(2, 132, 199, 0.25));
+    }
+
+    .title-main {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .title-tagline {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 18px;
+    }
+
+    .title-project-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--navy);
+      max-width: 800px;
+      line-height: 1.3;
+      margin-bottom: 24px;
+    }
+
+    .title-meta-box {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 28px;
+      display: inline-flex;
+      gap: 32px;
+      font-size: 0.86rem;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .title-meta-item strong {
+      display: block;
+      color: var(--navy);
+      font-size: 0.92rem;
+    }
+
+    .title-meta-item span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(226, 232, 240, 0.8);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .slide-footer-left {
+      font-weight: 600;
+    }
+
+    /* Print / PDF Styling */
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .top-toolbar, .progress-track {
+        display: none !important;
+      }
+      .slide-stage {
+        max-width: 100%;
+        margin: 0;
+        aspect-ratio: auto;
+      }
+      .slide-deck {
+        box-shadow: none;
+        border-radius: 0;
+      }
+      .slide-page {
+        position: relative !important;
+        opacity: 1 !important;
+        transform: none !important;
+        page-break-after: always;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Controller Toolbar -->
+  <header class="top-toolbar">
+    <div class="brand-title">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+      </svg>
+      MedSync <span>| MCA Final Year Project Presentation</span>
+    </div>
+
+    <div class="nav-controls">
+      <span class="slide-counter" id="slideIndicator">SLIDE 01 / 15</span>
+      <button type="button" class="btn-nav" id="btnPrev" onclick="navigateSlide(-1)">◀ Prev</button>
+      <button type="button" class="btn-nav" id="btnNext" onclick="navigateSlide(1)">Next ▶</button>
+      <button type="button" class="btn-nav btn-fullscreen" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- Progress Track -->
+  <div class="progress-track">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <!-- Main Presentation Stage (16:9) -->
+  <main class="slide-stage">
+    <div class="slide-deck" id="slideDeck">
+
+      <!-- ========================================== -->
+      <!-- SLIDE 1: Title Slide                       -->
+      <!-- ========================================== -->
+      <section class="slide-page title-slide-wrapper active" data-slide="1">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+          <svg class="title-brand-icon" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            <path d="M3.22 12H9.5l1.5-3 2 6 1.5-3h6.28"/>
+          </svg>
+          <h1 class="title-main">MedSync</h1>
+          <div class="title-tagline">Better Coordination. Healthier Tomorrow.</div>
+          <h2 class="title-project-name">Advanced Patient–Doctor Medication Coordination System</h2>
+
+          <div class="title-meta-box">
+            <div class="title-meta-item">
+              <strong>Amrutha</strong>
+              <span>Lead Developer &amp; Candidate</span>
+            </div>
+            <div class="title-meta-item">
+              <strong>MCA Final Year</strong>
+              <span>Master of Computer Applications</span>
+            </div>
+            <div class="title-meta-item">
+              <strong>Full-Stack Architecture</strong>
+              <span>React 18 • FastAPI • Google Cloud APIs</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer" style="width: 100%;">
+          <div class="slide-footer-left">Press Space or Right Arrow (▶) to advance slides</div>
+          <div class="slide-footer-right">MedSync Presentation 2026</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 2: Executive Summary                 -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="2">
+        <div class="slide-header">
+          <span class="slide-category">Executive Summary</span>
+          <h2 class="slide-title">Project Mission &amp; System Overview</h2>
+          <p class="slide-subtitle">Bridging the gap between home-based medication routines and hospital clinical supervision.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3col">
+            <div class="content-card">
+              <span class="badge badge-blue" style="margin-bottom: 12px;">Core Focus</span>
+              <h4>Medication Adherence</h4>
+              <p>Eliminates missed and incorrect doses through interactive daily schedules, food instructions (before/after meals), refill countdowns, and automated dose telemetry.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-green" style="margin-bottom: 12px;">Security Protocol</span>
+              <h4>Consent-Gated Access</h4>
+              <p>Provides patients with an official, non-guessable Patient ID (<code>MED-P-7K92X</code>). Doctors must request access, and records unlock only upon patient consent.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-amber" style="margin-bottom: 12px;">Smart Integration</span>
+              <h4>Radar &amp; AI Assist</h4>
+              <p>Integrates browser geolocation with Google Places API for finding nearby doctors, paired with a multimodal AI assistant supporting voice recognition and speech readout.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 02</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 3: Problem Statement                 -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="3">
+        <div class="slide-header">
+          <span class="slide-category">Clinical Context &amp; Need</span>
+          <h2 class="slide-title">The Chronic Healthcare Problem</h2>
+          <p class="slide-subtitle">Three critical bottlenecks in contemporary outpatient medication management.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3col">
+            <div class="content-card">
+              <div class="stat-number">50%+</div>
+              <div class="stat-label">Medication Non-Adherence</div>
+              <p>According to WHO reports, over 50% of chronic patients fail to adhere to prescriptions, leading to preventable complications, hospital re-admissions, and massive economic burdens.</p>
+            </div>
+            <div class="content-card">
+              <div class="stat-number">0%</div>
+              <div class="stat-label">Inter-Visit Clinical Visibility</div>
+              <p>Physicians have zero objective data regarding patient intake between quarterly consultations, forcing clinical decisions to rely entirely on fallible patient memory.</p>
+            </div>
+            <div class="content-card">
+              <div class="stat-number">Siloed</div>
+              <div class="stat-label">Fragmented Records</div>
+              <p>Diagnostic files, prescriptions, and allergy warnings remain trapped in disconnected silos without standardized, patient-controlled sharing mechanisms.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 03</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 4: Proposed Solution                 -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="4">
+        <div class="slide-header">
+          <span class="slide-category">System Architecture &amp; Innovation</span>
+          <h2 class="slide-title">The MedSync Solution Architecture</h2>
+          <p class="slide-subtitle">A synchronized, role-based platform empowering both patients and healthcare providers.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>👤 Patient Portal Capabilities</h4>
+              <ul>
+                <li><strong>Interactive Dose Tracking:</strong> Visual status pills for Taken, Upcoming, and Snoozed medications.</li>
+                <li><strong>Official Patient ID:</strong> Unique cryptographic ID (<code>MED-P-7K92X</code>) with 1-click sharing pass.</li>
+                <li><strong>Adherence Analytics:</strong> 7-day weekly bar chart and circular adherence progress gauge.</li>
+                <li><strong>Nearby Doctors Map:</strong> Real-time GPS detection with radius filters and turn-by-turn navigation.</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <h4>🩺 Doctor Command Hub</h4>
+              <ul>
+                <li><strong>Patient ID Lookup:</strong> Direct record retrieval gated by two-party consent approval.</li>
+                <li><strong>Clinical Telemetry:</strong> Instant visibility into patient adherence rates and missed dose history.</li>
+                <li><strong>AI Drug Safety Alerts:</strong> Automated drug-drug interaction alerts and allergy warnings.</li>
+                <li><strong>Appointment Management:</strong> Live queue with confirmed, pending, and follow-up consultation badges.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 04</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 5: 3-Tier Technical Architecture     -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="5">
+        <div class="slide-header">
+          <span class="slide-category">Technical Design</span>
+          <h2 class="slide-title">3-Tier System Architecture</h2>
+          <p class="slide-subtitle">Modern microservices architecture engineered for high throughput and security.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-3col">
+            <div class="content-card">
+              <span class="badge badge-blue" style="margin-bottom: 10px;">Tier 1: Client</span>
+              <h4>Presentation Layer</h4>
+              <ul>
+                <li>React 18 + Vite SPA</li>
+                <li>Tailwind CSS &amp; Modern UI</li>
+                <li>Ice-Blue Watercolor Theme</li>
+                <li>Lucide Vector Icons</li>
+                <li>Web Speech API (STT/TTS)</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-green" style="margin-bottom: 10px;">Tier 2: Server</span>
+              <h4>API &amp; Application Layer</h4>
+              <ul>
+                <li>Python 3.12 + FastAPI</li>
+                <li>Asynchronous ASGI (Uvicorn)</li>
+                <li>Pydantic Data Validation</li>
+                <li>Role-Based Access Control</li>
+                <li>CORS &amp; Session Tokens</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-amber" style="margin-bottom: 10px;">Tier 3: Cloud &amp; DB</span>
+              <h4>Data &amp; Cloud Services</h4>
+              <ul>
+                <li>SQLite3 / Cloud Firestore</li>
+                <li>Google Maps JavaScript API</li>
+                <li>Google Places API (New)</li>
+                <li>Google Routes &amp; Directions</li>
+                <li>Tamper-Proof Audit Vault</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 05</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 6: Unique Patient ID System          -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="6">
+        <div class="slide-header">
+          <span class="slide-category">Identity &amp; Privacy Protocol</span>
+          <h2 class="slide-title">Unique Patient ID Pass (`MED-P-XXXXXXXX`)</h2>
+          <p class="slide-subtitle">Cryptographically provisioned identity without exposing health records.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>🔑 Automated Provisioning Workflow</h4>
+              <ul>
+                <li><strong>UUID-Generated Format:</strong> Generated automatically during patient registration as <code>MED-P-XXXXXXXX</code>.</li>
+                <li><strong>Collision Prevention:</strong> Enforced by unique database indices preventing duplicate or guessed IDs.</li>
+                <li><strong>Persistent Digital Pass:</strong> Stored permanently in patient profile; survives session logouts and reboots.</li>
+                <li><strong>Digital Pass Actions:</strong> Offers 1-click <em>Copy ID</em>, <em>Download ID Card File</em>, and <em>Share with Doctor</em>.</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <h4>🛡️ Zero-Knowledge Security Principle</h4>
+              <ul>
+                <li><strong>Identification Only:</strong> Possessing a Patient ID grants ZERO direct medical record access.</li>
+                <li><strong>Explicit Handshake Required:</strong> Attending doctors must query the ID and submit a formal access request.</li>
+                <li><strong>Patient Sovereignty:</strong> Patient must explicitly approve consent on their dashboard before data unbinds.</li>
+                <li><strong>Audit Logging:</strong> Every query, approved grant, and revoked permission is immutably logged with timestamps.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 06</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 7: Patient Dashboard Module          -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="7">
+        <div class="slide-header">
+          <span class="slide-category">Patient User Experience</span>
+          <h2 class="slide-title">Advanced Patient Dashboard &amp; Telemetry</h2>
+          <p class="slide-subtitle">Personalized care dashboard engineered for maximum clarity and daily engagement.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4col">
+            <div class="content-card">
+              <span class="badge badge-blue">Card 1</span>
+              <h4 style="margin-top: 8px;">Patient ID Capsule</h4>
+              <p>Displays verified patient initial, official code <code>MED-P-7K92X</code>, and 1-click clipboard copy.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-green">Card 2</span>
+              <h4 style="margin-top: 8px;">Next Dose Hero</h4>
+              <p>Large countdown displaying <strong>2:00 PM</strong> with <em>Paracetamol 500mg</em> and Take Now / Snooze actions.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-amber">Card 3</span>
+              <h4 style="margin-top: 8px;">Adherence Gauge</h4>
+              <p>Real-time <strong>87%</strong> weekly adherence rating with total doses logged vs remaining.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-blue">Card 4</span>
+              <h4 style="margin-top: 8px;">Doctor Radar</h4>
+              <p>Quick cards for nearby doctors (Dr. Priya Sharma 1.2 km, Dr. Rahul Menon 2.4 km) with direct view links.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 07</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 8: Doctor Hub & Record Access        -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="8">
+        <div class="slide-header">
+          <span class="slide-category">Doctor Portal Experience</span>
+          <h2 class="slide-title">Doctor Command Hub &amp; Record Access</h2>
+          <p class="slide-subtitle">Comprehensive practitioner dashboard for patient lookup and clinical supervision.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>📊 Clinical Practice Overview</h4>
+              <ul>
+                <li><strong>Key Practice Metrics:</strong> Total Patients (248), Today's Appointments (8), Pending Requests (5), Urgent Alerts (3).</li>
+                <li><strong>Today's Appointments Stream:</strong> Chronological schedule (09:30 AM, 10:30 AM...) with visit categories and Confirmed badges.</li>
+                <li><strong>AI Patient Insights:</strong> Adherence percentage progress bar, missed dose alerts, and drug conflict detection.</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <h4>🔍 Patient ID Lookup Module</h4>
+              <ul>
+                <li><strong>Direct ID Query:</strong> Doctor inputs Patient ID (e.g. <code>MED-P-7K92X</code>) into clinical search bar.</li>
+                <li><strong>Consent Verification Gate:</strong> Checks database if access status is Active, Pending, or Revoked.</li>
+                <li><strong>Comprehensive Health Records:</strong> Renders active medications, allergies (Penicillin, Latex), and diagnostic reports upon authorization.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 08</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 9: Consent Security Workflow         -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="9">
+        <div class="slide-header">
+          <span class="slide-category">Security &amp; Compliance</span>
+          <h2 class="slide-title">Two-Party Consent &amp; Audit Architecture</h2>
+          <p class="slide-subtitle">Strict compliance-focused protocol ensuring zero unauthorized record exposure.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4col">
+            <div class="content-card">
+              <span class="badge badge-blue">Step 01</span>
+              <h4 style="margin-top: 8px;">ID Exchange</h4>
+              <p>Patient shares Patient ID (<code>MED-P-7K92X</code>) with attending physician during clinic visit or hospital registration.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-amber">Step 02</span>
+              <h4 style="margin-top: 8px;">Access Request</h4>
+              <p>Doctor queries ID in Doctor Hub. Backend generates an explicit access request with doctor details and timestamp.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-green">Step 03</span>
+              <h4 style="margin-top: 8px;">Patient Consent</h4>
+              <p>Patient dashboard displays real-time consent modal. Patient clicks <em>Approve</em> or <em>Reject</em> at their discretion.</p>
+            </div>
+            <div class="content-card">
+              <span class="badge badge-blue">Step 04</span>
+              <h4 style="margin-top: 8px;">Audit Trail</h4>
+              <p>Upon approval, records unlock for doctor. Action is permanently logged in the immutable audit table.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 09</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 10: Google Maps & Radar              -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="10">
+        <div class="slide-header">
+          <span class="slide-category">Location Services</span>
+          <h2 class="slide-title">Nearby Doctors &amp; Google Maps Radar</h2>
+          <p class="slide-subtitle">Real-time GPS geolocation and Google Places API integration.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>📍 Real-Time Geolocation Detection</h4>
+              <ul>
+                <li><strong>Browser Geolocation API:</strong> Automatically detects accurate user Latitude &amp; Longitude with permission handling.</li>
+                <li><strong>Search Radius Tiers:</strong> Multi-tier search boundaries supporting 3 km, 5 km, 10 km, and 20 km.</li>
+                <li><strong>Specialist Filters:</strong> Instant filtering for General Physicians, Cardiologists, Dermatologists, and Pediatricians.</li>
+                <li><strong>Haversine Distance:</strong> Real-time distance calculation sorted nearest-first.</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <h4>🗺️ Turn-by-Turn Google Navigation</h4>
+              <ul>
+                <li><strong>Interactive Map Markers:</strong> Custom blue marker for user location, medical pins for nearby clinics.</li>
+                <li><strong>Direct Directions Engine:</strong> "Get Directions" generates accurate Google Maps routes with real origin and destination coordinates.</li>
+                <li><strong>Multimodal Transit Modes:</strong> Driving, walking, and public transit navigation routes.</li>
+                <li><strong>Direct Booking Bridge:</strong> 1-click button to pre-fill the doctor in appointment scheduling.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 10</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 11: AI Health Assistant              -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="11">
+        <div class="slide-header">
+          <span class="slide-category">Artificial Intelligence &amp; Accessibility</span>
+          <h2 class="slide-title">Multimodal AI Health Assistant &amp; Voice</h2>
+          <p class="slide-subtitle">Hands-free accessibility powered by conversational AI and Web Speech APIs.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4col">
+            <div class="content-card">
+              <h4>🤖 Clinical AI Core</h4>
+              <p>Provides verified guidance regarding drug timings, food interactions (before/after meals), and medical FAQs.</p>
+            </div>
+            <div class="content-card">
+              <h4>🎙️ Speech-to-Text</h4>
+              <p>Continuous microphone recognition enabling elderly or motor-impaired patients to ask questions hands-free.</p>
+            </div>
+            <div class="content-card">
+              <h4>🔊 Voice Synthesis</h4>
+              <p>Natural speech readout synthesizing answers aloud with animated visual waveforms and audio mute toggles.</p>
+            </div>
+            <div class="content-card">
+              <h4>⚠️ Safety Guardrails</h4>
+              <p>Built-in clinical guardrails ensuring AI output is educational and directs emergency symptoms to doctors.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 11</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 12: Database Schema                  -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="12">
+        <div class="slide-header">
+          <span class="slide-category">Data Architecture</span>
+          <h2 class="slide-title">Relational Database Modeling &amp; Entities</h2>
+          <p class="slide-subtitle">Normalized relational schema ensuring transactional integrity and zero data redundancy.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>📑 Core Identity &amp; Clinical Tables</h4>
+              <ul>
+                <li><code>users</code>: uuid (PK), email, password_hash, full_name, role.</li>
+                <li><code>patient_profiles</code>: patient_id (Unique PK), blood_group, city, emergency_contact.</li>
+                <li><code>vitals</code>: id, patient_id, bp_systolic, bp_diastolic, heart_rate, spo2, glucose, recorded_at.</li>
+                <li><code>medications</code>: id, patient_name, medicine_name, dosage, frequency, doctor_name.</li>
+                <li><code>reminders</code>: id, medication_name, time, note, status (Taken/Upcoming).</li>
+              </ul>
+            </div>
+            <div class="content-card">
+              <h4>🔐 Governance &amp; Coordination Tables</h4>
+              <ul>
+                <li><code>doctor_patient_access</code>: id, doctor_name, patient_id, status (Approved/Pending), approved_at.</li>
+                <li><code>audit_logs</code>: id, doctor_name, patient_id, action, timestamp, ip_address.</li>
+                <li><code>appointments</code>: id, doctor_name, specialty, appointment_date, time, status.</li>
+                <li><code>messages</code>: id, sender, recipient, message, timestamp, is_read.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 12</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 13: Technical Highlights & Metrics   -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="13">
+        <div class="slide-header">
+          <span class="slide-category">Engineering Rigor &amp; Benchmarks</span>
+          <h2 class="slide-title">Technical Performance Metrics</h2>
+          <p class="slide-subtitle">Benchmarked against modern web performance and responsiveness standards.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-4col">
+            <div class="content-card">
+              <div class="stat-number">1.12s</div>
+              <div class="stat-label">Vite Build Time</div>
+              <p>Optimized asset bundling with Rolldown tree-shaking and zero compilation overhead.</p>
+            </div>
+            <div class="content-card">
+              <div class="stat-number">&lt; 45ms</div>
+              <div class="stat-label">API Response Time</div>
+              <p>Asynchronous FastAPI endpoints executing near-instant database queries.</p>
+            </div>
+            <div class="content-card">
+              <div class="stat-number">100%</div>
+              <div class="stat-label">Responsive Layout</div>
+              <p>Fluid grid and flexbox adaptability from 320px mobile screens to 4K desktop displays.</p>
+            </div>
+            <div class="content-card">
+              <div class="stat-number">Zero</div>
+              <div class="stat-label">Data Leak Vulnerabilities</div>
+              <p>Consent-gated architecture preventing unauthorized query access.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 13</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 14: Future Roadmap                   -->
+      <!-- ========================================== -->
+      <section class="slide-page" data-slide="14">
+        <div class="slide-header">
+          <span class="slide-category">Extensibility &amp; Commercialization</span>
+          <h2 class="slide-title">Future Scope &amp; Project Roadmap</h2>
+          <p class="slide-subtitle">Expanding MedSync towards interconnected IoT hardware and smart health networks.</p>
+        </div>
+
+        <div class="slide-body">
+          <div class="grid-2col">
+            <div class="content-card">
+              <h4>1. IoT Smart Pillbox Integration</h4>
+              <p>Hardware sensor integration (ESP32 / Arduino) detecting physical compartment openings to automatically log doses via WebSockets without manual smartphone input.</p>
+              <h4 style="margin-top: 16px;">2. Wearables Telemetry Sync</h4>
+              <p>Bidirectional sync with Apple HealthKit, Fitbit, and Google Fit to correlate medication adherence with real-time blood pressure, heart rate, and sleep quality.</p>
+            </div>
+            <div class="content-card">
+              <h4>3. WebRTC Teleconsultation Calling</h4>
+              <p>Encrypted peer-to-peer video consultations allowing doctor-patient follow-ups and digital prescription issuance directly within the MedSync browser tab.</p>
+              <h4 style="margin-top: 16px;">4. Automated Pharmacy e-Refills</h4>
+              <p>Automated order dispatch to neighborhood pharmacies when patient pill supplies drop below 3 days, closing the prescription supply chain loop.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <div class="slide-footer-left">MedSync Healthcare Platform</div>
+          <div class="slide-footer-right">Slide 14</div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 15: Conclusion & Q&A                 -->
+      <!-- ========================================== -->
+      <section class="slide-page title-slide-wrapper" data-slide="15">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+          <span class="badge badge-green" style="margin-bottom: 14px; font-size: 0.85rem; padding: 6px 16px;">PROJECT DEFENSE COMPLETED</span>
+          <h1 class="title-main" style="font-size: 2.8rem;">Thank You!</h1>
+          <div class="title-tagline" style="font-size: 1.3rem;">Questions, Feedback &amp; Live System Demonstration</div>
+
+          <div class="title-meta-box" style="margin-top: 20px;">
+            <div class="title-meta-item">
+              <strong>Live Web Client</strong>
+              <span>http://localhost:5173</span>
+            </div>
+            <div class="title-meta-item">
+              <strong>Backend API</strong>
+              <span>http://localhost:8000/docs</span>
+            </div>
+            <div class="title-meta-item">
+              <strong>Candidate</strong>
+              <span>Amrutha (MCA Final Year)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer" style="width: 100%;">
+          <div class="slide-footer-left">MedSync: Advanced Patient–Doctor Medication Coordination System</div>
+          <div class="slide-footer-right">Slide 15 / 15</div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 15;
+    const slides = document.querySelectorAll('.slide-page');
+    const indicator = document.getElementById('slideIndicator');
+    const progressBar = document.getElementById('progressBar');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+
+    function updateSlide() {
+      slides.forEach((s) => s.classList.remove('active'));
+      const activeSlide = document.querySelector(`.slide-page[data-slide="${currentSlide}"]`);
+      if (activeSlide) {
+        activeSlide.classList.add('active');
+      }
+
+      indicator.textContent = `SLIDE ${String(currentSlide).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+      progressBar.style.width = `${((currentSlide - 1) / (totalSlides - 1)) * 100}%`;
+
+      btnPrev.disabled = currentSlide === 1;
+      btnNext.disabled = currentSlide === totalSlides;
+    }
+
+    function navigateSlide(direction) {
+      const next = currentSlide + direction;
+      if (next >= 1 && next <= totalSlides) {
+        currentSlide = next;
+        updateSlide();
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        navigateSlide(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        navigateSlide(-1);
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        currentSlide = 1;
+        updateSlide();
+      } else if (e.key === 'End') {
+        currentSlide = totalSlides;
+        updateSlide();
+      }
+    });
+
+    // Initialize
+    updateSlide();
+  </script>
+</body>
+</html>

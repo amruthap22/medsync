@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isDoctor() {
+      return isAuthenticated() && request.auth.token.role == 'doctor';
+    }
+
+    function isPatient() {
+      return isAuthenticated() && request.auth.token.role == 'patient';
+    }
+
+    // Check if a doctor has approved, unrevoked consent from the patient
+    function hasApprovedDoctorConsent(doctorId, patientId) {
+      let accessDocId = doctorId + '_' + patientId;
+      return exists(/databases/$(database)/documents/doctor_access/$(accessDocId)) &&
+             get(/databases/$(database)/documents/doctor_access/$(accessDocId)).data.status == 'approved';
+    }
+
+    // ========================================================
+    // Collection: patients/{patientId}
+    // Patient Profile & Identity Record
+    // ========================================================
+    match /patients/{patientId} {
+      // Patients can read their own profile; Doctors can only read if patient has explicitly approved access
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.authUid ||
+        hasApprovedDoctorConsent(request.auth.uid, patientId)
+      );
+
+      // Patient registration: Enforces valid MED-P-XXXXXXXX format and links auth UID
+      allow create: if isAuthenticated() &&
+        request.resource.data.patientId == patientId &&
+        patientId.matches('^MED-P-[A-Z0-9]{8}$') &&
+        request.resource.data.authUid == request.auth.uid;
+
+      // Patient profile update: The Patient ID is strictly immutable and cannot be altered
+      allow update: if isAuthenticated() &&
+        request.auth.uid == resource.data.authUid &&
+        request.resource.data.patientId == resource.data.patientId;
+
+      allow delete: if false; // Medical identity records cannot be deleted directly
+    }
+
+    // ========================================================
+    // Collection: doctor_access/{accessId}
+    // Patient Consent & Doctor Authorization Governance
+    // ========================================================
+    match /doctor_access/{accessId} {
+      // Both the requesting doctor and the patient can read the consent status
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.doctorId ||
+        request.auth.uid == resource.data.patientAuthUid
+      );
+
+      // Doctors can initiate an access request in 'pending' status
+      allow create: if isDoctor() &&
+        request.resource.data.doctorId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+
+      // Only the patient can update the status (approve, reject, or revoke)
+      allow update: if isAuthenticated() &&
+        request.auth.uid == resource.data.patientAuthUid &&
+        request.resource.data.doctorId == resource.data.doctorId &&
+        request.resource.data.patientId == resource.data.patientId &&
+        (request.resource.data.status in ['approved', 'rejected', 'revoked']);
+
+      allow delete: if false; // Consent audit records cannot be deleted
+    }
+
+    // ========================================================
+    // Collection: medical_records/{patientId}/clinical_data/{recordId}
+    // Sensitive Medical History, Prescriptions, Lab Reports
+    // ========================================================
+    match /medical_records/{patientId}/clinical_data/{recordId} {
+      // Strictly requires approved patient consent before allowing doctor read access
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.patientAuthUid ||
+        hasApprovedDoctorConsent(request.auth.uid, patientId)
+      );
+
+      // Only patient or authorized clinical desk may create records
+      allow create: if isAuthenticated() && (
+        request.auth.uid == request.resource.data.patientAuthUid ||
+        hasApprovedDoctorConsent(request.auth.uid, patientId)
+      );
+
+      // Historical records cannot be modified without permission
+      allow update, delete: if false;
+    }
+
+    // ========================================================
+    // Collection: treatment_notes/{noteId}
+    // Doctor Consultation Notes (Append-Only)
+    // ========================================================
+    match /treatment_notes/{noteId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.patientAuthUid ||
+        hasApprovedDoctorConsent(request.auth.uid, resource.data.patientId)
+      );
+
+      // Authorized doctors can append treatment notes only while access is approved
+      allow create: if isDoctor() &&
+        request.resource.data.doctorId == request.auth.uid &&
+        hasApprovedDoctorConsent(request.auth.uid, request.resource.data.patientId);
+
+      // Medical treatment notes are immutable once committed
+      allow update, delete: if false;
+    }
+
+    // ========================================================
+    // Collection: access_logs/{logId}
+    // HIPAA & Governance Audit Trail (Append-Only)
+    // ========================================================
+    match /access_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.uid == resource.data.doctorId ||
+        request.auth.uid == resource.data.patientAuthUid
+      );
+
+      // System and authenticated users can create audit log entries
+      allow create: if isAuthenticated() &&
+        request.resource.data.timestamp is timestamp;
+
+      // Audit logs can NEVER be updated or deleted
+      allow update, delete: if false;
+    }
+  }
+}
